@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container" id="login-signup-container">
+    <h1>Library Management System</h1>
+    <h2>Login</h2>
+    <label for="email">Email</label>
+    <input type="email" id="email" required>
+    <label for="password">Password</label>
+    <input type="password" id="password" required>
+    <button onclick="login()">Login</button>
+    
+    <h2>Signup</h2>
+    <label for="signup-email">Email</label>
+    <input type="email" id="signup-email" required>
+    <label for="signup-password">Password</label>
+    <input type="password" id="signup-password" required>
+    <button onclick="signup()">Signup</button>
+</div>
+
+<div class="container hidden" id="admin-panel">
+    <h1>Admin Panel</h1>
+    
+    <div id="user-list">
+        <h2>Registered Users</h2>
+        <!-- Users will be displayed here -->
+    </div>
+
+    <div id="book-list">
+        <h2>List of Books</h2>
+        <div id="books">
+            <!-- Books will be displayed here -->
+        </div>
+    </div>
+
+    <h2>Add Book</h2>
+    <form id="add-book-form">
+        <label for="book-title">Title</label>
+        <input type="text" id="book-title" required>
+        <label for="book-pages">Pages</label>
+        <input type="number" id="book-pages" required>
+        <label for="book-publisher">Publisher</label>
+        <input type="text" id="book-publisher" required>
+        <label for="book-author">Author</label>
+        <input type="text" id="book-author" required>
+        <label for="book-edition">Edition</label>
+        <input type="text" id="book-edition" required>
+        <button type="button" onclick="addBook()">Add Book</button>
+    </form>
+</div>
+
+<div class="container hidden" id="teacher-student-panel">
+    <h1>Welcome</h1>
+    <h2>Available Books</h2>
+    <div id="books-student">
+        <!-- Books for students/teachers will be displayed here -->
+    </div>
+
+    <h2>Request a Book</h2>
+    <input type="text" id="requested-book-title" placeholder="Enter Book Title" required>
+    <button onclick="requestBook()">Request Book</button>
+
+    <button onclick="goBack()">Back to Login</button>
+</div>
+
+<script>
+    let registeredUsers = [
+        { email: 'khushistudent@gmail.com', role: 'student' },
+        { email: 'khushiteacher@gmail.com', role: 'teacher' }
+    ];
+
+    const adminCredentials = { email: 'khushiadmin@gmail.com', password: 'admin123' };
+
+    let books = [
+        { title: 'Harry Potter', pages: 500, publisher: 'Khushi', author: 'Sobia', edition: '2nd' },
+        { title: 'Namal', pages: 1000, publisher: 'Khushi', author: 'Nemrah', edition: '3rd' }
+    ];
+
+    function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        if (email === adminCredentials.email && password === adminCredentials.password) {
+            alert('Admin logged in successfully');
+            document.getElementById('login-signup-container').classList.add('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+            displayUsers();
+            displayBooks('admin');
+        } else {
+            const user = registeredUsers.find(u => u.email === email);
+            if (user) {
+                alert(`${user.role.charAt(0).toUpperCase() + user.role.slice(1)} logged in successfully`);
+                document.getElementById('login-signup-container').classList.add('hidden');
+                document.getElementById('teacher-student-panel').classList.remove('hidden');
+                displayBooks('student');
+            } else {
+                alert('Invalid credentials');
+            }
+        }
+    }
+
+    function signup() {
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+
+        if (email.includes('admin')) {
+            alert('Signup as admin is not allowed.');
+            return;
+        }
+
+        let role = email.includes('teacher') ? 'teacher' : 'student';
+        registeredUsers.push({ email: email, role: role });
+        alert(`${role.charAt(0).toUpperCase() + role.slice(1)} registered successfully`);
+    }
+
+    function displayUsers() {
+        const userList = document.getElementById('user-list');
+        userList.innerHTML = ''; 
+        registeredUsers.forEach((user, index) => {
+            userList.innerHTML += `
+                <div class="user-item">
+                    <span>${user.role.toUpperCase()}: ${user.email}</span>
+                    <button onclick="removeUser(${index})">Remove</button>
+                </div>
+            `;
+        });
+    }
+
+    function removeUser(index) {
+        registeredUsers.splice(index, 1);
+        displayUsers();
+        alert('User removed successfully');
+    }
+
+    function addBook() {
+        const title = document.getElementById('book-title').value;
+        const pages = document.getElementById('book-pages').value;
+        const publisher = document.getElementById('book-publisher').value;
+        const author = document.getElementById('book-author').value;
+        const edition = document.getElementById('book-edition').value;
+
+        const newBook = { title, pages, publisher, author, edition };
+        books.push(newBook);
+
+        displayBooks('admin');
+        alert('Book added successfully');
+    }
+
+    function displayBooks(panel) {
+        let booksList = document.getElementById(panel === 'admin' ? 'books' : 'books-student');
+        booksList.innerHTML = ''; 
+        books.forEach((book, index) => {
+            booksList.innerHTML += `
+                <div class="book-item">
+                    <div class="book-details">
+                        <div class="book-title">${book.title}</div>
+                        <div class="book-meta">Pages: ${book.pages} | Publisher: ${book.publisher} | Author: ${book.author} | Edition: ${book.edition}</div>
+                    </div>
+                    ${panel === 'admin' ? `<button onclick="editBook(${index})">Edit</button>
+                    <button onclick="removeBook(${index})">Remove</button>` : ''}
+                </div>
+            `;
+        });
+    }
+
+    function editBook(index) {
+        const book = books[index];
+        const newTitle = prompt('Enter new title', book.title);
+        const newPages = prompt('Enter new pages', book.pages);
+        const newPublisher = prompt('Enter new publisher', book.publisher);
+        const newAuthor = prompt('Enter new author', book.author);
+        const newEdition = prompt('Enter new edition', book.edition);
+
+        books[index] = {
+            title: newTitle || book.title,
+            pages: newPages || book.pages,
+            publisher: newPublisher || book.publisher,
+            author: newAuthor || book.author,
+            edition: newEdition || book.edition
+        };
+
+        displayBooks('admin');
+        alert('Book updated successfully');
+    }
+
+    function removeBook(index) {
+        books.splice(index, 1);
+        displayBooks('admin');
+        alert('Book removed successfully');
+    }
+
+    function requestBook() {
+        const requestedBookTitle = document.getElementById('requested-book-title').value;
+        alert(`Your request for "${requestedBookTitle}" has been submitted.`);
+    }
+
+    function goBack() {
+        document.getElementById('login-signup-container').classList.remove('hidden');
+        document.getElementById('teacher-student-panel').classList.add('hidden');
+        document.getElementById('admin-panel').classList.add('hidden');
+    }
+</script>
+
+</body>
+</html>
